@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>강아지 종류 맞추기</title>
+    <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+
+          body {
+                  font-family: 'Segoe UI', sans-serif;
+                  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+                  min-height: 100vh;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  padding: 16px;
+          }
+
+          .card {
+                  background: #fff;
+                  border-radius: 24px;
+                  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+                  padding: 40px 32px;
+                  width: 100%;
+                  max-width: 480px;
+                  text-align: center;
+          }
+
+          h1 { font-size: 2rem; margin-bottom: 8px; }
+          .subtitle { color: #888; margin-bottom: 32px; font-size: 0.95rem; }
+
+          .difficulty-group { display: flex; gap: 12px; justify-content: center; margin-bottom: 32px; flex-wrap: wrap; }
+          .diff-btn {
+                  flex: 1; min-width: 90px; padding: 14px 8px;
+                  border: 2px solid #eee; border-radius: 14px;
+                  background: #fafafa; cursor: pointer; font-size: 0.95rem;
+                  transition: all .2s;
+          }
+          .diff-btn .emoji { font-size: 1.6rem; display: block; margin-bottom: 4px; }
+          .diff-btn:hover { border-color: #fcb69f; background: #fff5ef; }
+          .diff-btn.active { border-color: #f76b1c; background: #fff5ef; font-weight: bold; }
+
+          .start-btn {
+                  width: 100%; padding: 16px;
+                  background: linear-gradient(90deg, #f76b1c, #fda44f);
+                  color: #fff; font-size: 1.1rem; font-weight: bold;
+                  border: none; border-radius: 14px; cursor: pointer;
+                  transition: opacity .2s;
+          }
+          .start-btn:hover { opacity: .9; }
+          .start-btn:disabled { opacity: .5; cursor: default; }
+
+          .progress-info {
+                  display: flex; justify-content: space-between;
+                  font-size: 0.85rem; color: #888; margin-bottom: 8px;
+          }
+          .progress-bar { background: #eee; border-radius: 99px; height: 8px; margin-bottom: 20px; overflow: hidden; }
+          .progress-fill { height: 100%; background: linear-gradient(90deg, #f76b1c, #fda44f); border-radius: 99px; transition: width .4s; }
+
+          .dog-img-wrap {
+                  width: 100%; aspect-ratio: 1/1; border-radius: 18px; overflow: hidden;
+                  background: #f0f0f0; margin-bottom: 24px; position: relative;
+          }
+          .dog-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+          .img-loading {
+                  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+                  font-size: 2rem; color: #ccc;
+          }
+
+          .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+          .choice-btn {
+                  padding: 14px 8px; border: 2px solid #eee; border-radius: 12px;
+                  background: #fafafa; cursor: pointer; font-size: 0.88rem;
+                  transition: all .15s; line-height: 1.3;
+          }
+          .choice-btn:hover:not(:disabled) { border-color: #fda44f; background: #fff5ef; }
+          .choice-btn.correct { border-color: #4caf50; background: #e8f5e9; color: #2e7d32; font-weight: bold; }
+          .choice-btn.wrong { border-color: #ef5350; background: #ffebee; color: #c62828; }
+          .choice-btn:disabled { cursor: default; }
+
+          .score-circle {
+                  width: 140px; height: 140px; border-radius: 50%;
+                  background: linear-gradient(135deg, #f76b1c, #fda44f);
+                  display: flex; flex-direction: column; align-items: center; justify-content: center;
+                  margin: 0 auto 24px; color: #fff;
+          }
+          .score-circle .score-num { font-size: 2.4rem; font-weight: bold; }
+          .score-circle .score-label { font-size: 0.8rem; opacity: .85; }
+          .result-msg { font-size: 1.3rem; font-weight: bold; margin-bottom: 8px; }
+          .result-sub { color: #888; margin-bottom: 32px; font-size: 0.9rem; }
+
+          .retry-btn {
+                  width: 100%; padding: 16px;
+                  background: linear-gradient(90deg, #f76b1c, #fda44f);
+                  color: #fff; font-size: 1.1rem; font-weight: bold;
+                  border: none; border-radius: 14px; cursor: pointer;
+                  transition: opacity .2s;
+          }
+          .retry-btn:hover { opacity: .9; }
+
+          .hidden { display: none !important; }
+        </style>
+  </head>
+  <body>
+
+    <div class="card">
+
+        <div id="screen-start">
+              <h1>강아지 퀴즈</h1>
+            <p class="subtitle">사진을 보고 강아지 종류를 맞춰보세요!</p>p>
+        
+            <div class="difficulty-group">
+                  <button class="diff-btn active" data-diff="easy">
+                          <span class="emoji">:)</span>span>쉬움<br><small style="color:#aaa">8문제</small>small>
+                  </button>button>
+                  <button class="diff-btn" data-diff="normal">
+                          <span class="emoji">?</span>span>보통<br><small style="color:#aaa">10문제</small>small>
+                  </button>button>
+                  <button class="diff-btn" data-diff="hard">
+                          <span class="emoji">!</span>span>어려움<br><small style="color:#aaa">12문제</small>small>
+                  </button>button>
+            </div>div>
+        
+            <button class="start-btn" id="start-btn">퀴즈 시작!</button>button>
+        </div>div>
+    
+      <div id="screen-quiz" class="hidden">
+          <div class="progress-info">
+                <span id="q-count">1 / 10</span>span>
+                <span id="q-score">점수: 0</span>span>
+          </div>div>
+          <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div>div></div>div>
+          <div class="dog-img-wrap">
+                <div class="img-loading" id="img-loading">...</div>div>
+                <img id="dog-img" src="" alt="강아지 사진" style="display:none">
+          </div>div>
+          <div class="choices" id="choices"></div>div>
+      </div>div>
+    
+      <div id="screen-result" class="hidden">
+          <h1 style="margin-bottom:24px">결과</h1>
+          <div class="score-circle">
+                <span class="score-num" id="final-score">0</span>span>
+                <span class="score-label" id="final-total">/ 10</span>span>
+          </div>div>
+          <div class="result-msg" id="result-msg"></div>div>
+          <div class="result-sub" id="result-sub"></div>div>
+          <button class="retry-btn" id="retry-btn">다시 도전!</button>button>
+      </div>div>
+    
+    </div>div>
+  
+  <script>
+    const API = 'https://dog.ceo/api';
+    let allBreeds = [];
+    let currentDiff = 'easy';
+    let questions = [];
+    let currentQ = 0;
+    let score = 0;
+    const DIFF = { easy: 8, normal: 10, hard: 12 };
+    const $start = document.getElementById('screen-start');
+    const $quiz = document.getElementById('screen-quiz');
+    const $result = document.getElementById('screen-result');
+
+    function show(el) {
+        [$start, $quiz, $result].forEach(s => s.classList.add('hidden'));
+        el.classList.remove('hidden');
+    }
+
+    async function loadBreeds() {
+        const res = await fetch(`${API}/breeds/list/all`);
+        const data = await res.json();
+        allBreeds = [];
+        for (const [name, subs] of Object.entries(data.message)) {
+              if (subs.length === 0) {
+                      allBreeds.push({ name, sub: null, key: name });
+              } else {
+                      for (const sub of subs) {
+                                allBreeds.push({ name, sub, key: `${name}/${sub}` });
+                      }
+              }
+        }
+    }
+
+    function formatBreed(b) {
+        if (b.sub) return cap(b.sub) + ' ' + cap(b.name);
+        return cap(b.name);
+    }
+    function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+    function randPick(arr, n) {
+        const copy = [...arr];
+        const out = [];
+        while (out.length < n && copy.length) {
+              const i = Math.floor(Math.random() * copy.length);
+              out.push(copy.splice(i, 1)[0]);
+        }
+        return out;
+    }
+
+    function buildQuestions(diff) {
+        const count = DIFF[diff];
+        let pool;
+        if (diff === 'easy') {
+              pool = allBreeds.filter(b => b.sub === null);
+        } else if (diff === 'normal') {
+              pool = allBreeds;
+        } else {
+              const withSub = allBreeds.filter(b => b.sub !== null);
+              const withoutSub = allBreeds.filter(b => b.sub === null);
+              pool = withSub.length >= count ? withSub : [...withSub, ...withoutSub];
+        }
+        const answers = randPick(pool, count);
+        return answers.map(answer => {
+              let distractors;
+              if (diff === 'hard') {
+                      const sameParent = pool.filter(b => b.name === answer.name && b.key !== answer.key);
+                      const others = pool.filter(b => b.key !== answer.key && !sameParent.includes(b));
+                      const fromParent = randPick(sameParent, Math.min(sameParent.length, Math.floor(Math.random() * 2) + 1));
+                      distractors = [...fromParent, ...randPick(others, 3 - fromParent.length)];
+              } else {
+                      distractors = randPick(pool.filter(b => b.key !== answer.key), 3);
+              }
+              return { answer, choices: randPick([answer, ...distractors], 4) };
+        });
+    }
+
+    async function startQuiz() {
+        document.getElementById('start-btn').disabled = true;
+        if (allBreeds.length === 0) await loadBreeds();
+        document.getElementById('start-btn').disabled = false;
+        questions = buildQuestions(currentDiff);
+        currentQ = 0; score = 0;
+        show($quiz);
+        renderQuestion();
+    }
+
+    async function renderQuestion() {
+        const total = questions.length;
+        const q = questions[currentQ];
+        document.getElementById('q-count').textContent = `${currentQ + 1} / ${total}`;
+        document.getElementById('q-score').textContent = `점수: ${score}`;
+        document.getElementById('progress-fill').style.width = `${(currentQ / total) * 100}%`;
+        const img = document.getElementById('dog-img');
+        const loading = document.getElementById('img-loading');
+        img.style.display = 'none';
+        loading.style.display = 'flex';
+        const imgRes = await fetch(`${API}/breed/${q.answer.key}/images/random`);
+        const imgData = await imgRes.json();
+        img.src = imgData.message;
+        img.onload = () => { loading.style.display = 'none'; img.style.display = 'block'; };
+        img.onerror = () => { loading.textContent = '?'; };
+        const $choices = document.getElementById('choices');
+        $choices.innerHTML = '';
+        q.choices.forEach(breed => {
+              const btn = document.createElement('button');
+              btn.className = 'choice-btn';
+              btn.textContent = formatBreed(breed);
+              btn.addEventListener('click', () => handleAnswer(btn, breed, q.answer));
+              $choices.appendChild(btn);
+        });
+    }
+
+    function handleAnswer(btn, chosen, answer) {
+        const $choices = document.getElementById('choices');
+        [...$choices.querySelectorAll('.choice-btn')].forEach(b => b.disabled = true);
+        if (chosen.key === answer.key) {
+              btn.classList.add('correct');
+              score++;
+        } else {
+              btn.classList.add('wrong');
+              [...$choices.querySelectorAll('.choice-btn')].forEach(b => {
+                      if (b.textContent === formatBreed(answer)) b.classList.add('correct');
+              });
+        }
+        document.getElementById('q-score').textContent = `점수: ${score}`;
+        setTimeout(() => {
+              currentQ++;
+              if (currentQ < questions.length) renderQuestion();
+              else showResult();
+        }, 900);
+    }
+
+    function showResult() {
+        const total = questions.length;
+        const pct = score / total;
+        document.getElementById('final-score').textContent = score;
+        document.getElementById('final-total').textContent = `/ ${total}`;
+        let msg, sub;
+        if (pct >= 0.9) { msg = '강아지 박사!'; sub = '놀라운 견종 지식이에요!'; }
+        else if (pct >= 0.7) { msg = '대단해요!'; sub = '강아지를 정말 좋아하시는군요!'; }
+        else if (pct >= 0.5) { msg = '나쁘지 않아요!'; sub = '조금만 더 공부하면 박사가 될 수 있어요.'; }
+        else { msg = '더 연습해봐요!'; sub = '강아지 사진을 더 많이 보면 늘 거예요!'; }
+        document.getElementById('result-msg').textContent = msg;
+        document.getElementById('result-sub').textContent = sub;
+        show($result);
+    }
+
+    document.querySelectorAll('.diff-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+              document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+              btn.classList.add('active');
+              currentDiff = btn.dataset.diff;
+        });
+    });
+    document.getElementById('start-btn').addEventListener('click', startQuiz);
+    document.getElementById('retry-btn').addEventListener('click', () => show($start));
+    loadBreeds().catch(() => {});
+  </script>
+  </body>
+</html>html>
+  </script></h1>
+  </body>
+    </style></title>
+  </head>
